@@ -1,1 +1,1 @@
-# Document-Management-System-in-Python
+A lightweight Python implementation of a document management system that demonstrates object-oriented programming principles, particularly abstraction through abstract base classes.This project provides a simple framework for managing different types of documents (text, spreadsheets, presentations) through a unified interface. It showcases how abstraction can be used to create flexible, extensible systems in Python.This project envlove concepts like Abstract Base Classes (ABCs),Inheritance and polymorphism,Encapsulation.
