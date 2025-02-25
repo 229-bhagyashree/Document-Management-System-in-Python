@@ -1,0 +1,165 @@
+from abc import ABC, abstractmethod
+import datetime
+
+# Abstract base class for all document types
+class Document(ABC):
+    def __init__(self, name, content):
+        self.name = name
+        self.content = content
+        self.created_date = datetime.datetime.now()
+        self.modified_date = self.created_date
+    
+    def get_info(self):
+        """Common method available to all document types"""
+        return {
+            "name": self.name,
+            "created": self.created_date,
+            "modified": self.modified_date,
+            "type": self.get_document_type()
+        }
+    
+    @abstractmethod
+    def get_document_type(self):
+        """Each document type must implement this method"""
+        pass
+    
+    @abstractmethod
+    def display(self):
+        """Each document type must implement how it is displayed"""
+        pass
+    
+    def update_content(self, new_content):
+        """Common method to update document content"""
+        self.content = new_content
+        self.modified_date = datetime.datetime.now()
+        print(f"Document '{self.name}' has been updated.")
+
+# Concrete implementation: TextDocument
+class TextDocument(Document):
+    def get_document_type(self):
+        return "Text"
+    
+    def display(self):
+        print(f"\n--- TEXT DOCUMENT: {self.name} ---")
+        print(self.content)
+        print("-" * 40)
+    
+    def word_count(self):
+        """Text-specific functionality"""
+        return len(self.content.split())
+
+# Concrete implementation: SpreadsheetDocument
+class SpreadsheetDocument(Document):
+    def __init__(self, name, content):
+        # For simplicity, content is a 2D list representing rows and columns
+        super().__init__(name, content)
+    
+    def get_document_type(self):
+        return "Spreadsheet"
+    
+    def display(self):
+        print(f"\n--- SPREADSHEET: {self.name} ---")
+        for row in self.content:
+            print("| " + " | ".join(str(cell) for cell in row) + " |")
+        print("-" * 40)
+    
+    def get_cell(self, row, col):
+        """Spreadsheet-specific functionality"""
+        try:
+            return self.content[row][col]
+        except IndexError:
+            return None
+
+# Concrete implementation: PresentationDocument
+class PresentationDocument(Document):
+    def get_document_type(self):
+        return "Presentation"
+    
+    def display(self):
+        print(f"\n--- PRESENTATION: {self.name} ---")
+        for i, slide in enumerate(self.content):
+            print(f"Slide {i+1}: {slide}")
+        print("-" * 40)
+    
+    def get_slide_count(self):
+        """Presentation-specific functionality"""
+        return len(self.content)
+
+# Document Manager that works with any Document type
+class DocumentManager:
+    def __init__(self):
+        self.documents = []
+    
+    def add_document(self, document):
+        if not isinstance(document, Document):
+            raise TypeError("Only Document objects can be added")
+        self.documents.append(document)
+        print(f"Added {document.get_document_type()} document: {document.name}")
+    
+    def list_all_documents(self):
+        print("\n=== ALL DOCUMENTS ===")
+        for doc in self.documents:
+            info = doc.get_info()
+            print(f"{info['name']} ({info['type']}) - Created: {info['created'].strftime('%Y-%m-%d')}")
+    
+    def display_document(self, name):
+        for doc in self.documents:
+            if doc.name == name:
+                doc.display()
+                return
+        print(f"Document '{name}' not found.")
+
+# Demo application
+def run_document_demo():
+    # Create a document manager
+    doc_manager = DocumentManager()
+    
+    # Create different document types
+    text_doc = TextDocument(
+        "Project Notes", 
+        "This is a sample text document with project notes. It contains important information about the project."
+    )
+    
+    spreadsheet = SpreadsheetDocument(
+        "Budget", 
+        [
+            ["Item", "Cost", "Quantity"], 
+            ["Laptop", 1200, 2], 
+            ["Monitor", 300, 3], 
+            ["Mouse", 25, 5]
+        ]
+    )
+    
+    presentation = PresentationDocument(
+        "Project Proposal", 
+        [
+            "Introduction to Project", 
+            "Market Analysis", 
+            "Implementation Plan", 
+            "Budget Overview"
+        ]
+    )
+    
+    # Add documents to manager
+    doc_manager.add_document(text_doc)
+    doc_manager.add_document(spreadsheet)
+    doc_manager.add_document(presentation)
+    
+    # List all documents
+    doc_manager.list_all_documents()
+    
+    # Display specific documents
+    doc_manager.display_document("Project Notes")
+    doc_manager.display_document("Budget")
+    
+    # Use document-specific methods
+    print(f"\nWord count in 'Project Notes': {text_doc.word_count()}")
+    print(f"Cell value at row 1, column 1 in 'Budget': {spreadsheet.get_cell(1, 1)}")
+    print(f"Number of slides in 'Project Proposal': {presentation.get_slide_count()}")
+    
+    # Update a document
+    text_doc.update_content("Updated project notes with new requirements and deadlines.")
+    doc_manager.display_document("Project Notes")
+
+if __name__ == "__main__":
+    run_document_demo()
